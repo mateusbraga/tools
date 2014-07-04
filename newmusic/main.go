@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/mateusbraga/tools/prepare-music/music"
+	"github.com/mateusbraga/tools/newmusic/music"
 )
 
 var (

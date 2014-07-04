@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -99,6 +100,11 @@ func prepareForKindle(path string) error {
 		newFile := path + ".mobi"
 
 		callEbookConvert(path, newFile)
+
+
+        htmlFolder := strings.TrimSuffix(path, ".html") + "_files"
+        os.RemoveAll(htmlFolder)
+        os.Remove(path)
 
 		log.Printf("Derived '%v' from '%v'", newFile, path)
 		return nil
