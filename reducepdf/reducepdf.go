@@ -25,10 +25,10 @@ func main() {
 
 	outputFileinfo, err := os.Stat(outputFile)
 	if err != nil {
-		log.Fatalf("Could not stat input file %v: %v", inputFile, err)
+        log.Fatalf("BUG: could not stat output file %v: %v", outputFile, err)
 	}
 
-	log.Printf("\tReduced size of %v from %v to %v. %v created.\n", inputFile, inputFileinfo, outputFileinfo, outputFile)
+	log.Printf("\tReduced size of '%v' from %v to %v. '%v' created.\n", inputFile, inputFileinfo.Size(), outputFileinfo.Size(), outputFile)
 }
 
 func reducePdfSizeUsingGhostScript(inputFile string, outputFile string) {
