@@ -8,6 +8,11 @@ import (
 	"os/exec"
 )
 
+const (
+	// Expects at least a 10% reduction of the filesize
+	MINIMUM_FILESIZE_REDUCTION_EXPECTED = 0.1
+)
+
 func main() {
 	if len(os.Args) != 2 {
 		log.Fatalf("Usage: reducepdf file.pdf\n")
@@ -25,10 +30,16 @@ func main() {
 
 	outputFileinfo, err := os.Stat(outputFile)
 	if err != nil {
-        log.Fatalf("BUG: could not stat output file %v: %v", outputFile, err)
+		log.Fatalf("BUG: could not stat output file %v: %v", outputFile, err)
 	}
 
-	log.Printf("\tReduced size of '%v' from %v to %v. '%v' created.\n", inputFile, inputFileinfo.Size(), outputFileinfo.Size(), outputFile)
+	if outputFileinfo.Size() > int64(float64(inputFileinfo.Size())*(1-MINIMUM_FILESIZE_REDUCTION_EXPECTED)) {
+		log.Println("Could not reduce the filesize significantly.")
+		os.Remove(outputFile)
+		return
+	} else {
+		log.Printf("\tReduced size of '%v' from %v to %v. '%v' created.\n", inputFile, inputFileinfo.Size(), outputFileinfo.Size(), outputFile)
+	}
 }
 
 func reducePdfSizeUsingGhostScript(inputFile string, outputFile string) {
