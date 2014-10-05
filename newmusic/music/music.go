@@ -20,6 +20,7 @@ var musicFiletypesSupported = map[string]bool{
 	".mp4":  true,
 	".webm": true,
 	".m4a":  true,
+	".ogg":  true,
 	backupCopyExtension:  true,
 }
 
@@ -189,6 +190,23 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".m4a")] + ".mp3"
 
 		// convert m4a -> mp3
+		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+		if err := ffmpeg.Run(); err != nil {
+			log.Fatal(err)
+		}
+
+		processMp3(newWorkingCopy)
+
+		//commit
+		callMove(newWorkingCopy, newFile)
+		os.Remove(path)
+
+		log.Printf("Derived '%v' from '%v'", newFile, path)
+		return nil
+	case ".ogg":
+		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".ogg")] + ".mp3"
+
+		// convert ogg -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
