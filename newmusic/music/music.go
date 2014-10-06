@@ -102,7 +102,7 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".wma")] + ".mp3"
 
 		// convert wma -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, "-acodec", "libmp3lame", newWorkingCopy)
+		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, "-acodec", "libmp3lame", newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
 		}
@@ -139,7 +139,7 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".flv")] + ".mp3"
 
 		// convert flv -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
 		}
@@ -156,7 +156,7 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".mp4")] + ".mp3"
 
 		// convert mp4 -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
 		}
@@ -173,7 +173,7 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".webm")] + ".mp3"
 
 		// convert webm -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
 		}
@@ -190,7 +190,7 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".m4a")] + ".mp3"
 
 		// convert m4a -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
 		}
@@ -207,7 +207,7 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".ogg")] + ".mp3"
 
 		// convert ogg -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+        ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
 		if err := ffmpeg.Run(); err != nil {
 			log.Fatal(err)
 		}
