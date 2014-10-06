@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,10 +15,13 @@ const (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("Usage: reducepdf file.pdf\n")
+    maxFlag := flag.Bool("max", false, "Try to reduce size to the maximum")
+    flag.Parse()
+
+	if len(flag.Args()) != 1 {
+		log.Fatalf("Usage: reducepdf file.pdf %v \n", flag.Args())
 	}
-	inputFile := os.Args[1]
+	inputFile := flag.Arg(0)
 
 	inputFileinfo, err := os.Stat(inputFile)
 	if err != nil {
@@ -25,8 +29,11 @@ func main() {
 	}
 
 	outputFile := inputFile[:len(inputFile)-len(".pdf")] + " - compressed.pdf"
+	if *maxFlag {
+        outputFile = inputFile[:len(inputFile)-len(".pdf")] + " - highly compressed.pdf"
+	}
 
-	reducePdfSizeUsingGhostScript(inputFile, outputFile)
+	reducePdfSizeUsingGhostScript(inputFile, outputFile, *maxFlag)
 
 	outputFileinfo, err := os.Stat(outputFile)
 	if err != nil {
@@ -42,10 +49,14 @@ func main() {
 	}
 }
 
-func reducePdfSizeUsingGhostScript(inputFile string, outputFile string) {
-	// gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
+func reducePdfSizeUsingGhostScript(inputFile string, outputFile string, maxFlag bool) {
+	// gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
 	outputFileArg := fmt.Sprintf("-sOutputFile=%v", outputFile)
-	args := []string{"-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.4", "-dPDFSETTINGS=/printer", "-dNOPAUSE", "-dQUIET", "-dBATCH", outputFileArg, inputFile}
+    pdfSettings := "-dPDFSETTINGS=/ebook"
+	if maxFlag {
+	    pdfSettings = "-dPDFSETTINGS=/screen"
+	}
+	args := []string{"-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.4", pdfSettings, "-dNOPAUSE", "-dQUIET", "-dBATCH", outputFileArg, inputFile}
 
 	gs := exec.Command("gs", args...)
 	var gsOut bytes.Buffer
