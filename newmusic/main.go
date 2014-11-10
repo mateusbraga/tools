@@ -24,7 +24,7 @@ func main() {
 	if len(os.Args) == 1 { // get rootDir from cmdline args or current dir
 		pwd, err := os.Getwd()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Getwd", err)
 		}
 		rootDir = pwd
 	} else {
@@ -32,19 +32,18 @@ func main() {
 		if rootDir == "./..." {
 			pwd, err := os.Getwd()
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Getwd", err)
 			}
 			rootDir = pwd
 			isRecursive = true
 		}
 	}
 
-
-    done := make(chan struct{})
-    defer close(done)
+	done := make(chan struct{})
+	defer close(done)
 
 	// findMusicFiles will produce filenames that processMusic will consume
-    paths, errc := music.WalkFiles(done, rootDir, isRecursive)
+	paths, errc := music.WalkFiles(done, rootDir, isRecursive)
 
 	//startFixMusicWorkers(done, paths)
 	fixMusicWorkerWaitGroup.Add(fixMusicWorkerTotal)
@@ -54,9 +53,9 @@ func main() {
 
 	// wait for all fixMusicWorkers to complete
 	fixMusicWorkerWaitGroup.Wait()
-    if err := <-errc; err != nil {
-        log.Fatalln(err)
-    }
+	if err := <-errc; err != nil {
+		log.Fatalln("WalkFiles:", err)
+	}
 }
 
 func fixMusicWorker(done <-chan struct{}, paths <-chan string) {
