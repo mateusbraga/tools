@@ -62,6 +62,9 @@ func fixMusicWorker(done <-chan struct{}, paths <-chan string) {
 	defer fixMusicWorkerWaitGroup.Done()
 
 	for path := range paths {
-		music.FixMusic(path)
+		err := music.FixMusic(path)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }

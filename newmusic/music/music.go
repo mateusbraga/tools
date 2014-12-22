@@ -1,6 +1,7 @@
 package music
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -24,32 +25,44 @@ var musicFiletypesSupported = map[string]bool{
 	backupCopyExtension: true,
 }
 
-func callLame(inputFile string, outputFile string) {
+func callLame(inputFile string, outputFile string) error {
 	lame := exec.Command("lame", "-v", inputFile, outputFile)
-	if err := lame.Run(); err != nil {
-		log.Fatal("lame failed: ", err)
+	err := debugRun(lame)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
+	return nil
 }
 
-func callMp3Gain(file string) {
+func callMp3Gain(file string) error {
 	mp3gain := exec.Command("mp3gain", "-r", "-k", "-T", file)
-	if err := mp3gain.Run(); err != nil {
-		log.Fatal("mp3gain failed: ", err)
+	err := debugRun(mp3gain)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
+	return nil
 }
 
-func callCopy(inputFile string, outputFile string) {
+func callCopy(inputFile string, outputFile string) error {
 	cp := exec.Command("cp", inputFile, outputFile)
-	if err := cp.Run(); err != nil {
-		log.Fatal("mv failed: ", err)
+	err := debugRun(cp)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
+	return nil
 }
 
-func callMove(inputFile string, outputFile string) {
+func callMove(inputFile string, outputFile string) error {
 	move := exec.Command("mv", inputFile, outputFile)
-	if err := move.Run(); err != nil {
-		log.Fatal("mv failed: ", err)
+	err := debugRun(move)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
+	return nil
 }
 
 func atomicReplaceFile(newFile string, oldFile string) {
@@ -60,7 +73,7 @@ func atomicReplaceFile(newFile string, oldFile string) {
 
 	err := os.Remove(fileWorkingCopy)
 	if err != nil {
-		log.Fatalf("os.Remove '%v': %v\n", fileWorkingCopy, err)
+		log.Println("os.Remove '%v': %v\n", fileWorkingCopy, err)
 	}
 }
 
@@ -74,11 +87,25 @@ func processMp3(fileWorkingCopy string) {
 	callMp3Gain(fileWorkingCopy)
 }
 
+func debugRun(cmd *exec.Cmd) error {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		log.Println("cmd:", cmd)
+		log.Printf("stdout:\n---Start---\n%v\n---End---", stdout.String())
+		log.Printf("stderr:\n---Start---\n%v\n---End---", stderr.String())
+		return fmt.Errorf("cmd '%v': %v", cmd, err)
+	}
+	return nil
+}
+
 func FixMusic(path string) error {
 	// Get temp dir to process file
 	tempDir, err := ioutil.TempDir("", "gomusic")
 	if err != nil {
-		log.Fatalln("Create TempDir", err)
+		return err
 	}
 	defer os.RemoveAll(tempDir)
 
@@ -103,8 +130,9 @@ func FixMusic(path string) error {
 
 		// convert wma -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, "-acodec", "libmp3lame", newWorkingCopy)
-		if err := ffmpeg.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		err := debugRun(ffmpeg)
+		if err != nil {
+			return err
 		}
 
 		processMp3(newWorkingCopy)
@@ -121,9 +149,11 @@ func FixMusic(path string) error {
 
 		// convert flac -> wav
 		flac := exec.Command("flac", "-d", fileWorkingCopy, "-o", tempNewFileWav)
-		if err := flac.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		err := debugRun(flac)
+		if err != nil {
+			return err
 		}
+
 		// convert wav -> mp3
 		callLame(tempNewFileWav, newWorkingCopy)
 
@@ -140,8 +170,9 @@ func FixMusic(path string) error {
 
 		// convert flv -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		if err := ffmpeg.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		err := debugRun(ffmpeg)
+		if err != nil {
+			return err
 		}
 
 		processMp3(newWorkingCopy)
@@ -156,9 +187,10 @@ func FixMusic(path string) error {
 		newWorkingCopy := fileWorkingCopy[:len(fileWorkingCopy)-len(".mp4")] + ".mp3"
 
 		// convert mp4 -> mp3
-		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		if err := ffmpeg.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
+		err := debugRun(ffmpeg)
+		if err != nil {
+			return err
 		}
 
 		processMp3(newWorkingCopy)
@@ -174,8 +206,9 @@ func FixMusic(path string) error {
 
 		// convert webm -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
-		if err := ffmpeg.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		err := debugRun(ffmpeg)
+		if err != nil {
+			return err
 		}
 
 		processMp3(newWorkingCopy)
@@ -191,8 +224,9 @@ func FixMusic(path string) error {
 
 		// convert m4a -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		if err := ffmpeg.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		err := debugRun(ffmpeg)
+		if err != nil {
+			return err
 		}
 
 		processMp3(newWorkingCopy)
@@ -208,8 +242,9 @@ func FixMusic(path string) error {
 
 		// convert ogg -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		if err := ffmpeg.Run(); err != nil {
-			log.Fatal("ffmpeg:", err)
+		err := debugRun(ffmpeg)
+		if err != nil {
+			return err
 		}
 
 		processMp3(newWorkingCopy)
