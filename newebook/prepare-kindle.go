@@ -77,8 +77,8 @@ func prepareForKindleWorker(done <-chan struct{}, paths <-chan string) {
 }
 
 func callEbookConvert(inputFile, outputFile string) {
-	// ebook-convert file.html file2.mobi
-	args := []string{inputFile, outputFile}
+	// ebook-convert file.html file2.mobi --filter-css 'font-family,color,margin-left,margin-right' --mobi-ignore-margins
+	args := []string{inputFile, outputFile, "--filter-css", "font-family,color,margin-left,margin-right", "--mobi-ignore-margins"}
 
 	ebookConvert := exec.Command("ebook-convert", args...)
 	var cmdStdout bytes.Buffer
@@ -101,10 +101,9 @@ func prepareForKindle(path string) error {
 
 		callEbookConvert(path, newFile)
 
-
-        htmlFolder := strings.TrimSuffix(path, ".html") + "_files"
-        os.RemoveAll(htmlFolder)
-        os.Remove(path)
+		htmlFolder := strings.TrimSuffix(path, ".html") + "_files"
+		os.RemoveAll(htmlFolder)
+		os.Remove(path)
 
 		log.Printf("Derived '%v' from '%v'", newFile, path)
 		return nil
