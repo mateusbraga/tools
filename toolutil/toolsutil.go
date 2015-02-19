@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-func verboseCmdRun(cmd *exec.Cmd) error {
+func VerboseCmdRun(cmd *exec.Cmd) error {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout

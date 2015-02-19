@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -11,6 +10,8 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/mateusbraga/tools/toolutil"
 )
 
 var (
@@ -81,16 +82,9 @@ func callEbookConvert(inputFile, outputFile string) {
 	args := []string{inputFile, outputFile, "--filter-css", "font-family,color,margin-left,margin-right", "--mobi-ignore-margins"}
 
 	ebookConvert := exec.Command("ebook-convert", args...)
-	var cmdStdout bytes.Buffer
-	var cmdStderr bytes.Buffer
-	ebookConvert.Stdout = &cmdStdout
-	ebookConvert.Stderr = &cmdStderr
-	if err := ebookConvert.Run(); err != nil {
-		log.Println("ebook-convert args:", args)
-		log.Println("ebook-convert command:", ebookConvert)
-		log.Printf("ebook-convert stdout:\n\n%v\n---End---", cmdStdout.String())
-		log.Printf("ebook-convert stderr:\n\n%v\n---End---", cmdStderr.String())
-		log.Fatalln("ebook-convert failed: ", err)
+	err := toolutil.VerboseCmdRun(ebookConvert)
+	if err != nil {
+		log.Panicln(err)
 	}
 }
 
