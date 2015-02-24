@@ -1,7 +1,6 @@
 package music
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/mateusbraga/tools/executil"
 )
 
 const backupCopyExtension = ".newmusic_backup"
@@ -27,7 +28,7 @@ var musicFiletypesSupported = map[string]bool{
 
 func callLame(inputFile string, outputFile string) error {
 	lame := exec.Command("lame", "-v", inputFile, outputFile)
-	err := debugRun(lame)
+	_, err := executil.RunWithVerboseError(lame)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -37,7 +38,7 @@ func callLame(inputFile string, outputFile string) error {
 
 func callMp3Gain(file string) error {
 	mp3gain := exec.Command("mp3gain", "-r", "-k", "-T", file)
-	err := debugRun(mp3gain)
+	_, err := executil.RunWithVerboseError(mp3gain)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -47,7 +48,7 @@ func callMp3Gain(file string) error {
 
 func callCopy(inputFile string, outputFile string) error {
 	cp := exec.Command("cp", inputFile, outputFile)
-	err := debugRun(cp)
+	_, err := executil.RunWithVerboseError(cp)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -57,7 +58,7 @@ func callCopy(inputFile string, outputFile string) error {
 
 func callMove(inputFile string, outputFile string) error {
 	move := exec.Command("mv", inputFile, outputFile)
-	err := debugRun(move)
+	_, err := executil.RunWithVerboseError(move)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -87,21 +88,7 @@ func processMp3(fileWorkingCopy string) {
 	callMp3Gain(fileWorkingCopy)
 }
 
-func debugRun(cmd *exec.Cmd) error {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		log.Println("cmd:", cmd)
-		log.Printf("stdout:\n---Start---\n%v\n---End---", stdout.String())
-		log.Printf("stderr:\n---Start---\n%v\n---End---", stderr.String())
-		return fmt.Errorf("cmd '%v': %v", cmd, err)
-	}
-	return nil
-}
-
-func FixMusic(path string) error {
+func FixMusic(path string) (err error) {
 	// Get temp dir to process file
 	tempDir, err := ioutil.TempDir("", "gomusic")
 	if err != nil {
@@ -130,7 +117,7 @@ func FixMusic(path string) error {
 
 		// convert wma -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, "-acodec", "libmp3lame", newWorkingCopy)
-		err := debugRun(ffmpeg)
+		_, err := executil.RunWithVerboseError(ffmpeg)
 		if err != nil {
 			return err
 		}
@@ -149,7 +136,7 @@ func FixMusic(path string) error {
 
 		// convert flac -> wav
 		flac := exec.Command("flac", "-d", fileWorkingCopy, "-o", tempNewFileWav)
-		err := debugRun(flac)
+		_, err := executil.RunWithVerboseError(flac)
 		if err != nil {
 			return err
 		}
@@ -170,7 +157,7 @@ func FixMusic(path string) error {
 
 		// convert flv -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		err := debugRun(ffmpeg)
+		_, err := executil.RunWithVerboseError(ffmpeg)
 		if err != nil {
 			return err
 		}
@@ -188,7 +175,7 @@ func FixMusic(path string) error {
 
 		// convert mp4 -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
-		err := debugRun(ffmpeg)
+		_, err := executil.RunWithVerboseError(ffmpeg)
 		if err != nil {
 			return err
 		}
@@ -206,7 +193,7 @@ func FixMusic(path string) error {
 
 		// convert webm -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-i", fileWorkingCopy, newWorkingCopy)
-		err := debugRun(ffmpeg)
+		_, err := executil.RunWithVerboseError(ffmpeg)
 		if err != nil {
 			return err
 		}
@@ -224,7 +211,7 @@ func FixMusic(path string) error {
 
 		// convert m4a -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		err := debugRun(ffmpeg)
+		_, err := executil.RunWithVerboseError(ffmpeg)
 		if err != nil {
 			return err
 		}
@@ -242,7 +229,7 @@ func FixMusic(path string) error {
 
 		// convert ogg -> mp3
 		ffmpeg := exec.Command("ffmpeg", "-map_metadata", "0:s:0", "-i", fileWorkingCopy, newWorkingCopy)
-		err := debugRun(ffmpeg)
+		_, err := executil.RunWithVerboseError(ffmpeg)
 		if err != nil {
 			return err
 		}

@@ -104,7 +104,7 @@ func isFiletypeSupported(filename string) bool {
 }
 
 func main() {
-    finalOutputFile := flag.String("output", "output.pdf", "Set the pdf output file to be created")
+	finalOutputFile := flag.String("output", "output.pdf", "Set the pdf output file to be created")
 	flag.Parse()
 
 	var inputFiles []string

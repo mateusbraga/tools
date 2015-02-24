@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mateusbraga/tools/toolutil"
+	"github.com/mateusbraga/tools/executil"
 )
 
 var (
@@ -82,10 +82,7 @@ func callEbookConvert(inputFile, outputFile string) {
 	args := []string{inputFile, outputFile, "--filter-css", "font-family,color,margin-left,margin-right", "--mobi-ignore-margins"}
 
 	ebookConvert := exec.Command("ebook-convert", args...)
-	err := toolutil.VerboseCmdRun(ebookConvert)
-	if err != nil {
-		log.Panicln(err)
-	}
+	executil.MustRun(ebookConvert)
 }
 
 func prepareForKindle(path string) error {

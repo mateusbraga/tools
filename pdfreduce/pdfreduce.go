@@ -1,12 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+
+	"github.com/mateusbraga/tools/executil"
 )
 
 const (
@@ -15,8 +16,8 @@ const (
 )
 
 func main() {
-    maxFlag := flag.Bool("max", false, "Try to reduce size to the maximum")
-    flag.Parse()
+	maxFlag := flag.Bool("max", false, "Try to reduce size to the maximum")
+	flag.Parse()
 
 	if len(flag.Args()) != 1 {
 		log.Fatalf("Usage: reducepdf file.pdf %v \n", flag.Args())
@@ -30,7 +31,7 @@ func main() {
 
 	outputFile := inputFile[:len(inputFile)-len(".pdf")] + " - compressed.pdf"
 	if *maxFlag {
-        outputFile = inputFile[:len(inputFile)-len(".pdf")] + " - highly compressed.pdf"
+		outputFile = inputFile[:len(inputFile)-len(".pdf")] + " - highly compressed.pdf"
 	}
 
 	reducePdfSizeUsingGhostScript(inputFile, outputFile, *maxFlag)
@@ -52,22 +53,12 @@ func main() {
 func reducePdfSizeUsingGhostScript(inputFile string, outputFile string, maxFlag bool) {
 	// gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
 	outputFileArg := fmt.Sprintf("-sOutputFile=%v", outputFile)
-    pdfSettings := "-dPDFSETTINGS=/ebook"
+	pdfSettings := "-dPDFSETTINGS=/ebook"
 	if maxFlag {
-	    pdfSettings = "-dPDFSETTINGS=/screen"
+		pdfSettings = "-dPDFSETTINGS=/screen"
 	}
 	args := []string{"-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.4", pdfSettings, "-dNOPAUSE", "-dQUIET", "-dBATCH", outputFileArg, inputFile}
 
 	gs := exec.Command("gs", args...)
-	var gsOut bytes.Buffer
-	var gsErr bytes.Buffer
-	gs.Stdout = &gsOut
-	gs.Stderr = &gsErr
-	if err := gs.Run(); err != nil {
-		log.Println("gs args:", args)
-		log.Println("gs command:", gs)
-		log.Printf("gs stdout:\n---Start---\n%v\n---End---", gsOut.String())
-		log.Printf("gs stderr:\n---Start---\n%v\n---End---", gsErr.String())
-		log.Fatalln("gs failed: ", err)
-	}
+	executil.MustRun(gs)
 }
