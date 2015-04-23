@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"math"
 	"os"
 	"os/exec"
 
@@ -20,13 +20,15 @@ func main() {
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
-		log.Fatalf("Usage: reducepdf file.pdf %v \n", flag.Args())
+		fmt.Printf("Usage: reducepdf file.pdf %v \n", flag.Args())
+		os.Exit(1)
 	}
 	inputFile := flag.Arg(0)
 
 	inputFileinfo, err := os.Stat(inputFile)
 	if err != nil {
-		log.Fatalf("Could not stat input file %v: %v", inputFile, err)
+		fmt.Printf("Could not stat input file %v: %v", inputFile, err)
+		os.Exit(1)
 	}
 
 	outputFile := inputFile[:len(inputFile)-len(".pdf")] + " - compressed.pdf"
@@ -38,15 +40,20 @@ func main() {
 
 	outputFileinfo, err := os.Stat(outputFile)
 	if err != nil {
-		log.Fatalf("BUG: could not stat output file %v: %v", outputFile, err)
+		fmt.Printf("BUG: could not stat output file %v: %v", outputFile, err)
+		os.Exit(1)
 	}
 
 	if outputFileinfo.Size() > int64(float64(inputFileinfo.Size())*(1-MINIMUM_FILESIZE_REDUCTION_EXPECTED)) {
-		log.Println("Could not reduce the filesize significantly.")
+		fmt.Println("Could not reduce the filesize significantly.")
 		os.Remove(outputFile)
 		return
 	} else {
-		log.Printf("\tReduced size of '%v' from %v to %v. '%v' created.\n", inputFile, inputFileinfo.Size(), outputFileinfo.Size(), outputFile)
+		humanReadableInputSize := HumanReadableSizeBytes(inputFileinfo.Size())
+		humanReadableOutputSize := HumanReadableSizeBytes(outputFileinfo.Size())
+		reductionPercentage := float64(outputFileinfo.Size()) / float64(inputFileinfo.Size())
+
+		fmt.Printf("\tReduced size of '%v' from %v to %v (%.2f%%). '%v' created.\n", inputFile, humanReadableInputSize, humanReadableOutputSize, reductionPercentage, outputFile)
 	}
 }
 
@@ -61,4 +68,23 @@ func reducePdfSizeUsingGhostScript(inputFile string, outputFile string, maxFlag 
 
 	gs := exec.Command("gs", args...)
 	executil.MustRun(gs)
+}
+
+func HumanReadableSizeBytes(size int64) string {
+	sizeFloat := float64(size)
+
+	magnitude := math.Floor(math.Log10(sizeFloat))
+
+	switch {
+	case magnitude >= 12:
+		return fmt.Sprintf("%v%v", sizeFloat/math.Pow10(12), "TB")
+	case magnitude >= 9:
+		return fmt.Sprintf("%v%v", sizeFloat/math.Pow10(9), "GB")
+	case magnitude >= 6:
+		return fmt.Sprintf("%v%v", sizeFloat/math.Pow10(6), "MB")
+	case magnitude >= 3:
+		return fmt.Sprintf("%v%v", sizeFloat/math.Pow10(3), "KB")
+	default:
+		return fmt.Sprintf("%v%v", size, "B")
+	}
 }
