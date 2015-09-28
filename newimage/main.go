@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rwcarlsen/goexif/exif"
@@ -116,7 +117,7 @@ func newNameWithDate(path string) (string, error) {
 }
 
 func prepareImage(path string) error {
-	switch ext := filepath.Ext(path); ext {
+	switch ext := strings.ToLower(filepath.Ext(path)); ext {
 	case ".jpg":
 		newFile, err := newNameWithDate(path)
 
@@ -185,7 +186,7 @@ func walkFiles(done <-chan struct{}, root string, isRecursive bool) (<-chan stri
 				}
 			}
 
-			if ext := filepath.Ext(path); filetypesSupported[ext] {
+			if ext := filepath.Ext(path); filetypesSupported[strings.ToLower(ext)] {
 				abs, _ := filepath.Abs(path)
 				select {
 				case paths <- abs:
