@@ -8,7 +8,7 @@ import (
 )
 
 var verboseError = `
-err cmd '%+v': %v
+failed to run '%+v': %v
 stdout: --------------
 %v
 stderr: --------------
@@ -22,7 +22,7 @@ func RunWithVerboseError(cmd *exec.Cmd) (string, error) {
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		verr := fmt.Errorf(verboseError, cmd, err, stdout, stderr)
-		return "", verr
+		return stdout.String(), verr
 	}
 	return stdout.String(), nil
 }
@@ -33,4 +33,15 @@ func MustRun(cmd *exec.Cmd) string {
 		log.Panicln(err)
 	}
 	return output
+}
+
+func HasExecutables(executablesName ...string) error {
+	for _, executable := range executablesName {
+		_, err := exec.LookPath(executable)
+		if err != nil {
+			return fmt.Errorf("Executable '%v' not found.", executable)
+		}
+	}
+
+	return nil
 }

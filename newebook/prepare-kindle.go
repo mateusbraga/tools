@@ -86,6 +86,11 @@ func callEbookConvert(inputFile, outputFile string) {
 }
 
 func prepareForKindle(path string) error {
+	err := executil.HasExecutables("ebook-convert")
+	if err != nil {
+		return err
+	}
+
 	switch ext := filepath.Ext(path); ext {
 	case ".html":
 		newFile := path + ".mobi"

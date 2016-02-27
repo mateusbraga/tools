@@ -89,6 +89,11 @@ func processMp3(fileWorkingCopy string) {
 }
 
 func FixMusic(path string) (err error) {
+	err = executil.HasExecutables("lame", "mp3gain", "mv", "cp")
+	if err != nil {
+		return err
+	}
+
 	// Get temp dir to process file
 	tempDir, err := ioutil.TempDir("", "gomusic")
 	if err != nil {

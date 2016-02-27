@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/mateusbraga/tools/executil"
 )
 
 var filetypesSupported = map[string]bool{
@@ -19,9 +21,7 @@ var filetypesSupported = map[string]bool{
 
 func CallConvert(inputFile string, outputFile string) {
 	convert := exec.Command("convert", inputFile, outputFile)
-	if err := convert.Run(); err != nil {
-		log.Fatal("convert failed: ", err)
-	}
+	executil.MustRun(convert)
 }
 
 func CallGhostScript(outputFile string, orderedFiles []string) {
@@ -29,21 +29,20 @@ func CallGhostScript(outputFile string, orderedFiles []string) {
 	args = append(args, orderedFiles...)
 
 	gs := exec.Command("gs", args...)
-	if err := gs.Run(); err != nil {
-		log.Println("gs args:", args)
-		log.Println("gs command:", gs)
-		log.Fatal("gs failed: ", err)
-	}
+	executil.MustRun(gs)
 }
 
 func CallMove(inputFile string, outputFile string) {
 	move := exec.Command("mv", inputFile, outputFile)
-	if err := move.Run(); err != nil {
-		log.Fatal("mv failed: ", err)
-	}
+	executil.MustRun(move)
 }
 
 func MakePdf(files []string, outputFile string) {
+	err := executil.HasExecutables("convert", "gs", "mv")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	var inputFiles []string
 
 	tempDir, err := ioutil.TempDir("", "gomakepdf")
