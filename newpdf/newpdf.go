@@ -43,8 +43,6 @@ func MakePdf(files []string, outputFile string) {
 		log.Fatalln(err)
 	}
 
-	var inputFiles []string
-
 	tempDir, err := ioutil.TempDir("", "gomakepdf")
 	if err != nil {
 		log.Fatalln(err)
@@ -58,9 +56,10 @@ func MakePdf(files []string, outputFile string) {
 		}
 	}
 	if ext := filepath.Ext(outputFile); ext != ".pdf" {
-		log.Fatalf("outputFile is not a pdf file: '%v'\n", outputFile)
+		log.Fatalf("outputFile must be a pdf file: '%v'\n", outputFile)
 	}
 
+	var inputFiles []string
 	// Convert/Prepare
 	for _, path := range files {
 		switch ext := filepath.Ext(path); ext {
@@ -110,7 +109,7 @@ func main() {
 	if len(flag.Args()) > 0 {
 		inputFiles = flag.Args()
 	} else {
-		fmt.Println("You need to give the list of files to be merged on the command line.\n\t Example: makepdf page1.jpg page2.jpg others.pdf")
+		fmt.Println("You need to give the list of files to be merged.\n\t Example: newpdf page1.jpg page2.jpg others.pdf")
 		return
 	}
 
